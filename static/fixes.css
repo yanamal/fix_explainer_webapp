@@ -1,0 +1,126 @@
+.highlight {
+    background: #eeeeee;
+    border-width: thin;
+    border: black;
+    border-style: dotted;
+}
+
+.code-block {
+    display: block;
+    margin-left: 25px;
+    margin-right: 25px;
+    vertical-align: top;
+    line-height: 2;
+}
+
+.shifted-tree-node {
+    position: absolute;
+    color: initial;
+    border-width: thin;
+    border-style: solid;
+}
+
+.ast-node {
+    position: relative
+}
+
+.placeholder {
+    position: relative;
+    color: rgba(0, 0, 0, 0.1);
+}
+
+.superscript {
+    position: absolute;
+    top: -20px;
+    color: rgba(100, 0, 0, 0.8);
+    visibility: hidden;
+}
+
+.shifted-tree-node:hover > .superscript{
+    visibility: visible;
+}
+
+.delete-text {
+    background-color: rgb(255, 233, 233);
+    text-decoration: line-through;
+}
+.delete-text>* {
+    text-decoration: none;
+}
+
+.delete-node>.text-span {
+    background-color: rgb(255, 233, 233);
+    text-decoration: line-through;
+}
+
+.move-node {
+    background-color: rgb(224, 237, 255);
+    text-decoration: none;
+    border-width: thin;
+    border-style: solid;
+    border-radius: 11px;
+    padding: 3px;
+}
+
+.rename-node {
+    position:relative;
+}
+
+.rename-node>.text-span {
+    background-color: rgb(255, 233, 233);
+    text-decoration: line-through;
+}
+
+.rename-node>.replacement {
+    position: absolute;
+    top: -20px;
+}
+
+.ast-node>.value {
+    position: absolute;
+    top: -20px;
+    color:rgba(100, 0, 0, 0.8)
+}
+
+.insert-multiline-span {
+    background-color: rgba(0, 255, 0, 0.1);
+    position:relative;
+    left: 10px;
+    top: -5px;
+    box-shadow: -10px 5px rgb(0 0 0 / 5%);
+}
+
+.insert-span {
+    background-color: rgba(0, 255, 0, 0.1);
+    position:absolute;
+    top: -20px;
+    left: -10px;
+    border-width: thin;
+    border-style: solid;
+    border-radius: 11px;
+    line-height: 1;
+}
+
+.inserted-node-inline {
+    position: absolute;
+    top: -20px;
+    left: -5px;
+    border-width: thin;
+    border-style: solid;
+    border-radius: 11px;
+    line-height: 1;
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.insertion-inline-indicator {
+    position: relative;
+    top: 5px;
+}
+
+.insertion-multiline-indicator {
+    position: fixed;
+}
+
+.evaluated-node {
+    border-top: 1px solid rgb(25, 25, 25);
+}

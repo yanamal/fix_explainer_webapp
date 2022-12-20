@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fix Explainer</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='fixes.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.3/leader-line.min.js" integrity="sha512-aFBNsI3+D6ObLLtyKwdZPZzDbcCC6+Bh+2UNV8HC0R95BpcBT+dmmZ5NMpJi/Ic8uO0W7FGcg33IfuHg+7Ryew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='test_data.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='fixes.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='request_form.js') }}"></script>
+    <script type="text/javascript">
+        let fix_data = {
+            "source_code": "",
+            "dest_code": ""
+        }
+    </script>
+</head>
+<body>
+    <div id="form_div">
+        <form id="fix_form" action="/generate" method="post">
+            <!--label for="code">Incorrect student code: </label-->
+            <div>
+                <label>Incorrect student code:</label><br/>
+            <textarea type="textarea" rows="4" cols="50" name="code" id="code" required>def helloWorld():
+    return 'Hello World'
+    </textarea>
+            </div>
+
+            <div>
+                <label>Correct version(s) of code:</label><br/>
+            <textarea type="textarea" rows="4" cols="50" name="correct[]">def helloWorld():
+    return 'Hello World!'
+    </textarea>
+            <textarea type="textarea" rows="4" cols="50" name="correct[]">def helloWorld():
+    return 'Hello World!'
+    </textarea>
+            </div>
+
+            <div>
+                <label>Unit test(s):</label><br/>
+            <input type="text" name="test[]" value="helloWorld() == 'Hello World!'">
+            </div>
+        </form>
+        <button onclick="ajax_submit()">Generate Fix</button>
+    </div>
+    <div id="code-div">
+        <ul id="tab-titles"></ul>
+    </div>
+    <script type="text/javascript">
+        load_sequence_data(test_2)
+        // TODO: do this on each insert/change code
+        highlight_nodes()
+        apply_special_styling()
+    </script>
+</body>
+</html>
