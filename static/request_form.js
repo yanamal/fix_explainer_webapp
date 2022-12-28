@@ -20,3 +20,19 @@ function ajax_submit(){
         }
     });
 }
+
+function add_unit_test(){
+    $('#test_fields').append('<input type="text" name="test[]">')
+}
+
+function remove_unit_test(){
+    $('input[name="test[]"]').last().remove()
+}
+
+function add_correct_version(){
+    $('#correct_fields').append('<textarea type="textarea" rows="4" cols="50" name="correct[]"></textarea>')
+}
+
+function remove_correct_version(){
+    $('textarea[name="correct[]"]').last().remove()
+}

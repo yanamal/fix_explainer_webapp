@@ -118,9 +118,15 @@
 }
 
 .insertion-multiline-indicator {
-    position: fixed;
+    position: absolute;
 }
 
 .evaluated-node {
     border-top: 1px solid rgb(25, 25, 25);
+}
+
+
+input[name="test[]"] {
+    display: block;
+    width:500px;
 }

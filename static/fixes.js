@@ -54,12 +54,12 @@ function apply_delete_style_to_text(selector) {
 
 function add_insertion_placeholder(inserted_elem, insert_into) {
     target_parent_id = inserted_elem.getAttribute('data-insert-into')
-    target_parent = $(`[data-node-id="${target_parent_id}"]`, insert_into)[0]  // TODO: look for parent in own code block
+    target_parent = $(`[data-node-id="${target_parent_id}"]`, insert_into)[0]
 
     target_before = null
     target_before_id = inserted_elem.getAttribute('data-insert-before')
     if(target_before_id){
-        target_before = $(`[data-node-id="${target_before_id}"]`, insert_into)[0]  // TODO: look for parent in own code block
+        target_before = $(`[data-node-id="${target_before_id}"]`, insert_into)[0]
     }
 
     placeholder_span = document.createElement('span')
@@ -74,6 +74,7 @@ all_leader_lines = []
 
 function apply_special_styling() {
     // Apply styling that can't be achieved through just CSS
+    // but needs to be applied after the element is attached to the document
 
     $('.move-node').each(function(node_i){
         // placeholder_span = add_insertion_placeholder(this)
@@ -95,19 +96,13 @@ function apply_special_styling() {
         all_leader_lines.push(line)
     })
 
-    // TODO: detect and handle inserted nodes that are on their own lines/block of code (whitespace?)
-    // use curly less than (precedes, &#8826;)
-
-    // TODO: make vertical space for large insertions? move to the side?
-
     $('.insert-multiline-span').each(function(){
         insertion_symbol_span = $('<span/>', {class: 'insertion-multiline-indicator'}).html('&#8826;')
         this.prepend(insertion_symbol_span[0])
         insertion_symbol_span.css({
-            left: `${this.getBoundingClientRect().left}px`,
-            top: `${(this.getBoundingClientRect().top)}px`
+            left: `${-insertion_symbol_span.position().left-5}px`,
+            top: `${-insertion_symbol_span.position().top-5}px`
         })
-        // TODO: use something more robust to get it in the right place on document/screen, e.g. jquery's offset() or position()
     })
 
     $('.insert-span').each(function(){
@@ -116,15 +111,6 @@ function apply_special_styling() {
         insertion_symbol_span.insertBefore(this, null)
     })
 
-    // $('.insert-node').each(function(node_i){
-    //     insert_span = document.createElement('span')
-    //     insert_span.innerHTML='&#8911;'
-    //     this.parentNode.insertBefore(insert_span, this)
-
-    //     insert_span.className = 'insertion-inline-indicator'
-    //     this.classList.add("inserted-node-inline")
-    //     insert_span.insertBefore(this, null)
-    // })
 }
 
 function wrap_text_in_spans(selection, span_class) {
@@ -151,22 +137,7 @@ function generate_inline_fix_html(source, dest, el_id) {
     wrap_text_in_spans(code_pre, 'text-span')
     wrap_text_in_spans(dest_code_pre, 'text-span')
 
-    // for each move edit, figure out where it should be moved and add the metadata
-    $('.move-node', code_pre).each(function(i){
-        node_id = this.getAttribute('data-node-id')
-        mapped_node = $(`[data-node-id="${node_id}"]`, dest_code_pre)
 
-        parent_id = mapped_node.parent().attr('data-node-id')
-        this.setAttribute('data-insert-into', parent_id)
-
-        next_sib_id = mapped_node.nextAll('.ast-node:first').attr('data-node-id')
-        if(next_sib_id) {
-            this.setAttribute('data-insert-before', next_sib_id)
-        }
-
-        add_insertion_placeholder(this, code_pre)
-
-    })
 
     // for each insert edit, inject the inserted code into the code being displayed, and mark it up as needed.
 
@@ -236,6 +207,23 @@ function generate_inline_fix_html(source, dest, el_id) {
         insertion_parent[0].insertBefore(insert_span[0], next_sib)
     })
 
+    // for each move edit, figure out where it should be moved and add the metadata
+    $('.move-node', code_pre).each(function(i){
+        node_id = this.getAttribute('data-node-id')
+        mapped_node = $(`[data-node-id="${node_id}"]`, dest_code_pre)
+
+        parent_id = mapped_node.parent().attr('data-node-id')
+        this.setAttribute('data-insert-into', parent_id)
+
+        next_sib_id = mapped_node.nextAll('.ast-node:first').attr('data-node-id')
+        if(next_sib_id) {
+            this.setAttribute('data-insert-before', next_sib_id)
+        }
+
+        add_insertion_placeholder(this, code_pre)
+
+    })
+
     // for each rename edit, get the replacement text
     $('.rename-node', code_pre).each(function(i){
         node_id = this.getAttribute('data-node-id')
@@ -245,6 +233,8 @@ function generate_inline_fix_html(source, dest, el_id) {
         this.prepend(replacement_span[0])
 
     })
+
+    // deletions will get formatted correctly through CSS (strikethrough)
 
     // add finished object to the document
     return code_pre
@@ -260,12 +250,15 @@ function load_sequence_data(data_source) {
     // regenerate:
     step_i = 1
     for (step_data of data_source) {
-        el_id = `step-${step_i}`
-        tab_title = `Step ${step_i}`
+        el_id = `fix-${step_i}`
+        tab_title = `Fix ${step_i}`
         fix_html = generate_inline_fix_html(step_data['source'], step_data['dest'], el_id)
         console.log(fix_html)
         $('#code-div').append(fix_html)
         $('#tab-titles').append($(`<li><a href="#${el_id}">${tab_title}</a></li>`))
+
+        //$(fix_html).prepend(step_data['dest'])  //TODO: position:absolute;visibility: hidden;
+
         step_i += 1
     }
 

@@ -20,7 +20,7 @@
 </head>
 <body>
     <div id="form_div">
-        <form id="fix_form" action="/generate" method="post">
+        <form id="fix_form" onsubmit="return false;">
             <!--label for="code">Incorrect student code: </label-->
             <div>
                 <label>Incorrect student code:</label><br/>
@@ -29,7 +29,7 @@
     </textarea>
             </div>
 
-            <div>
+            <div id='correct_fields'>
                 <label>Correct version(s) of code:</label><br/>
             <textarea type="textarea" rows="4" cols="50" name="correct[]">def helloWorld():
     return 'Hello World!'
@@ -38,11 +38,15 @@
     return 'Hello World!'
     </textarea>
             </div>
+            <button onclick="remove_correct_version()">-</button>
+            <button onclick="add_correct_version()">+</button>
 
-            <div>
+            <div id='test_fields'>
                 <label>Unit test(s):</label><br/>
             <input type="text" name="test[]" value="helloWorld() == 'Hello World!'">
             </div>
+            <button onclick="remove_unit_test()">-</button>
+            <button onclick="add_unit_test()">+</button>
         </form>
         <button onclick="ajax_submit()">Generate Fix</button>
     </div>
