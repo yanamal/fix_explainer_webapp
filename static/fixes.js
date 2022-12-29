@@ -76,7 +76,7 @@ function apply_special_styling() {
     // Apply styling that can't be achieved through just CSS
     // but needs to be applied after the element is attached to the document
 
-    $('.move-node').each(function(node_i){
+    $('.before-fix-code .move-node').each(function(node_i){
         // placeholder_span = add_insertion_placeholder(this)
         block = this.closest(".code-block")
         placeholder_span = $(`#insert_${this.id}`)[0]
@@ -127,10 +127,14 @@ function wrap_text_in_spans(selection, span_class) {
 
 function generate_inline_fix_html(source, dest, el_id) {
     // Get html of code to display
-    let code_pre = $('<pre/>', {class: 'code-block ', id: el_id}).html(source)
+    let code_pre = $('<pre/>', {class: 'code-block before-fix-code'}).html(source)
 
     // Get html of dest code (to extract additional edit information)
-    let dest_code_pre = $('<pre/>', {class: 'code-block '}).html(dest)
+    let dest_code_pre = $('<pre/>', {class: 'code-block after-fix-code'}).html(dest)
+
+    let tab_contents = $('<div/>', {id: el_id})
+    tab_contents.append(dest_code_pre)
+    tab_contents.append(code_pre)
 
     // wrap each bit of text into its own span that's distinct from the spans that indicate AST structure
     // this makes it easier to compare and manipulate the text belonging to each node (which may be intermixed with child nodes)
@@ -236,8 +240,8 @@ function generate_inline_fix_html(source, dest, el_id) {
 
     // deletions will get formatted correctly through CSS (strikethrough)
 
-    // add finished object to the document
-    return code_pre
+    // return finished object for adding to the document
+    return tab_contents
 }
 
 function load_sequence_data(data_source) {
@@ -253,7 +257,6 @@ function load_sequence_data(data_source) {
         el_id = `fix-${step_i}`
         tab_title = `Fix ${step_i}`
         fix_html = generate_inline_fix_html(step_data['source'], step_data['dest'], el_id)
-        console.log(fix_html)
         $('#code-div').append(fix_html)
         $('#tab-titles').append($(`<li><a href="#${el_id}">${tab_title}</a></li>`))
 
@@ -269,4 +272,99 @@ function load_sequence_data(data_source) {
             }
         }
     });
+}
+
+function animate_fix(){
+    // first, hide all arrows - they often look nonsensical during the animation
+    $('.leader-line').css('visibility', 'hidden')
+
+    // find current element
+    fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
+
+    nodes_to_move = [] // list of node to animate moving
+    // first, decide which nodes to move and which to fade out.
+    // instantly move nodes that need to be moved, in order to have them in the correct position when calculating moves for child nodes later in this same loop.
+    $('.before-fix-code .ast-node', fix_elem).each(function(i){
+        node_id = this.getAttribute('data-node-id')
+
+        fixed_node = $(`.after-fix-code [data-node-id=${node_id}]`, fix_elem)
+        // TODO: also skip movement/animate fade out for rename nodes
+        if(fixed_node.length > 0) {
+            my_offset = $(this).offset()
+            fixed_offset = fixed_node.offset()
+            top_move = fixed_offset.top-my_offset.top
+            left_move = fixed_offset.left-my_offset.left
+            // only bother with move logic if it actually needs moving.
+            if (top_move != 0 || left_move != 0){
+                $(this).css({
+                    'top': top_move,
+                    'left': left_move
+                })
+                nodes_to_move.push({
+                    'node': this,
+                    'top': top_move,
+                    'left': left_move
+                })
+            }
+        }
+        else
+        {
+            // TODO - fade out
+        }
+    })
+
+    // actually animate movement
+    // TODO: do something with the arrows?
+    for(move_obj of nodes_to_move){
+        // move back to original position
+        $(move_obj.node).css({
+            'top': 0,
+            'left': 0
+        })
+        $(move_obj.node).animate({
+            'top': move_obj.top,
+            'left': move_obj.left
+        })
+    }
+
+    // animate fade out of deleted text spans
+    $('.before-fix-code .delete-node>.text-span', fix_elem).each(function(i){
+        $(this).animate({
+            'opacity': 0
+        })
+
+    })
+
+    // animate fade out & move in replacement for rename nodes
+    $('.before-fix-code .rename-node>.text-span', fix_elem).each(function(i){
+        $(this).animate({
+            'opacity': 0
+        })
+
+    })
+    $('.before-fix-code .rename-node>.replacement', fix_elem).each(function(i){
+        $(this).animate({
+            'top': -6 // dunno, position:absolute nonsense.
+        })
+
+    })
+
+    $(":animated").promise().done(function() {
+        $('.after-fix-code', fix_elem).animate({
+            opacity: 1
+        })
+        $('.before-fix-code', fix_elem).animate({
+            opacity: 0
+        })
+        $(":animated").promise().done(function() {
+            reset_animation(fix_elem)
+            $( "#code-div" ).tabs( "option", "active", $("#code-div").tabs('option', 'active')+1 );
+        })
+    });
+}
+
+function reset_animation(elem){
+    $('span:not(.insertion-multiline-indicator)', elem).attr('style','');
+    $('.leader-line').attr('style','');
+    $('.code-block', fix_elem).attr('style','');
 }

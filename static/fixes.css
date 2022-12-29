@@ -62,11 +62,12 @@
     padding: 3px;
 }
 
+// TODO: redundant?
 .rename-node {
     position:relative;
 }
 
-.rename-node>.text-span {
+.before-fix-code .rename-node>.text-span {
     background-color: rgb(255, 233, 233);
     text-decoration: line-through;
 }
@@ -123,6 +124,11 @@
 
 .evaluated-node {
     border-top: 1px solid rgb(25, 25, 25);
+}
+
+.after-fix-code{
+    position: absolute;
+    opacity: 0;
 }
 
 
