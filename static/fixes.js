@@ -132,9 +132,12 @@ function generate_inline_fix_html(source, dest, el_id) {
     // Get html of dest code (to extract additional edit information)
     let dest_code_pre = $('<pre/>', {class: 'code-block after-fix-code'}).html(dest)
 
+    // insert into dom for debugging
+    $('#code-div').before(code_pre)
+    $('#code-div').before(dest_code_pre)
+
+
     let tab_contents = $('<div/>', {id: el_id})
-    tab_contents.append(dest_code_pre)
-    tab_contents.append(code_pre)
 
     // wrap each bit of text into its own span that's distinct from the spans that indicate AST structure
     // this makes it easier to compare and manipulate the text belonging to each node (which may be intermixed with child nodes)
@@ -241,8 +244,107 @@ function generate_inline_fix_html(source, dest, el_id) {
     // deletions will get formatted correctly through CSS (strikethrough)
 
     // return finished object for adding to the document
+
+    tab_contents.append(dest_code_pre)
+    tab_contents.append(code_pre)
     return tab_contents
 }
+
+
+function update_values_shown(before_pre, after_pre, trace, new_i) {
+    $('.trace-block .ast-node').removeClass('evaluated-node')
+    $('.trace-block .ast-node>.value').remove()
+
+
+    if(trace[new_i]['before']) {
+        before_node = $(`[data-node-id="${trace[new_i]['before']['node']}"]`, before_pre)
+        before_node.addClass('evaluated-node')
+        before_node.prepend($(`<span class='value'>${trace[new_i]['before']['values']}</span>`))
+    }
+
+    if(trace[new_i]['after']) {
+        after_node = $(`[data-node-id="${trace[new_i]['after']['node']}"]`, after_pre)
+        after_node.addClass('evaluated-node')
+        after_node.prepend($(`<span class='value'>${trace[new_i]['after']['values']}</span>`))
+    }
+
+
+}
+
+
+function generate_trace(step_data, step_i) {
+    let before_pre =  $('<pre/>', {class: 'trace-block before-fix-trace'}).html(step_data['source'])
+    let after_pre =  $('<pre/>', {class: 'trace-block after-fix-trace'}).html(step_data['dest'])
+
+    let explanation = $(`<div class="explanation"> Compare the effect of executing <pre>${step_data['unit_test_string']}</pre> with and without this fix:</div><hr/>`)
+
+    //let slider = $(`<input type="range" orient="vertical" class="trace-slider" min="0" max="${step_data['synced_trace'].length}" step="1" value="${step_data['deviation_i']}"/>`)
+    slider_id = `trace-slider-${step_i}`
+    let slider = $('<div/>', {class: 'trace-slider', id: slider_id})
+
+    let trace_contents = $('<div/>', {class: 'trace-div'})
+
+    trace_contents.append(explanation)
+    trace_contents.append(before_pre)
+
+    trace_contents.append(slider)
+    trace_contents.append(after_pre)
+
+    update_listener = function( event, ui ) {
+            op_index = -ui.value
+            update_values_shown(before_pre, after_pre, step_data['synced_trace'], op_index)
+            console.log( step_data['synced_trace'][op_index])
+        }
+
+    // use negative step values for the slider to make it go from top to bottom
+    slider.slider({
+        orientation: "vertical",
+        range: "max",
+        min: -step_data['synced_trace'].length+1,
+        max: 0,
+        value: -step_data['deviation_i'],
+        change: update_listener,
+        slide: update_listener
+    });
+
+    let ticks = $('<div/>', {class:'ticks'})
+    for(op of step_data['synced_trace']) {
+        before_line_class = "no-op-line"
+        if(op['before']) {
+            if(op['before']['values'].length <= 0 || op['value_matches']) {
+                before_line_class = "op-line"
+            }
+            else {
+                before_line_class = "bad-value-op-line"
+            }
+        }
+
+        after_line_class = "no-op-line"
+        if(op['after']) {
+            if(op['after']['values'].length <= 0 || op['value_matches']) {
+                after_line_class = "op-line"
+            }
+            else {
+                after_line_class = "bad-value-op-line"
+            }
+        }
+
+        ticks.append($(`
+<span class="tick">
+    <svg height="1" width="100%">
+        <line x1="0" y1="0" x2="10" y2="0" class="${before_line_class}"></line>
+        <line x1="30" y1="0" x2="40" y2="0" class="${after_line_class}"></line>
+    </svg>
+</span>`))
+
+    }
+    slider.append(ticks)
+
+    //slider.slider("value", slider.slider("value"));
+
+    return trace_contents
+}
+
 
 function load_sequence_data(data_source) {
     // reset:
@@ -253,17 +355,23 @@ function load_sequence_data(data_source) {
     all_leader_lines = []
     // regenerate:
     step_i = 1
-    for (step_data of data_source) {
+    for (step_data of data_source['fix_sequence']) {
         el_id = `fix-${step_i}`
         tab_title = `Fix ${step_i}`
         fix_html = generate_inline_fix_html(step_data['source'], step_data['dest'], el_id)
         $('#code-div').append(fix_html)
         $('#tab-titles').append($(`<li><a href="#${el_id}">${tab_title}</a></li>`))
 
-        //$(fix_html).prepend(step_data['dest'])  //TODO: position:absolute;visibility: hidden;
+        fix_html.append(generate_trace(step_data, step_i))
 
         step_i += 1
     }
+
+    // Generate final tab - just the last fully corrected code state
+    final_id = 'final_code'
+    let final_code_pre = $('<pre/>', {class: 'code-block before-fix-code', id: final_id}).html( data_source['final_code'])
+    $('#code-div').append(final_code_pre)
+    $('#tab-titles').append($(`<li><a href="#${final_id}">Final code after fixes</a></li>`))
 
     $( "#code-div" ).tabs({
         activate: function( event, ui ) {
@@ -272,6 +380,11 @@ function load_sequence_data(data_source) {
             }
         }
     });
+
+    $('.trace-slider').each(function(){
+        $(this).slider("value", $(this).slider("value"));
+        $(this).slider( "refresh" );
+    })
 }
 
 function animate_fix(){

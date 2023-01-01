@@ -9,6 +9,21 @@
     display: block;
     margin-left: 25px;
     margin-right: 25px;
+    line-height: 2;
+}
+
+.trace-div {
+    border: 1px solid gray;
+}
+
+.explanation{
+    text-align: center;
+}
+
+.trace-block {
+    display: inline-block;
+    margin-left: 25px;
+    margin-right: 25px;
     vertical-align: top;
     line-height: 2;
 }
@@ -53,7 +68,7 @@
     text-decoration: line-through;
 }
 
-.move-node {
+.code-block .move-node {
     background-color: rgb(224, 237, 255);
     text-decoration: none;
     border-width: thin;
@@ -80,7 +95,7 @@
 .ast-node>.value {
     position: absolute;
     top: -20px;
-    color:rgba(100, 0, 0, 0.8)
+    stroke:rgb(25,25,25);
 }
 
 .insert-multiline-span {
@@ -123,7 +138,7 @@
 }
 
 .evaluated-node {
-    border-top: 1px solid rgb(25, 25, 25);
+    border-top: 1px solid rgba(25, 25, 25, 1);
 }
 
 .after-fix-code{
@@ -135,4 +150,48 @@
 input[name="test[]"] {
     display: block;
     width:500px;
+}
+
+
+.trace-slider
+{
+    height: 175px;
+    display: inline-block;
+}
+
+.ticks {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    height: 100%;
+    width: 40px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tick {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    height: 1px;
+}
+
+.op-line {
+    stroke:rgb(25,25,25);
+    stroke-width:1
+}
+
+.no-op-line {
+    stroke:rgba(25,25,25,0);
+    stroke-width:1
+}
+
+.bad-value-op-line {
+    stroke:rgba(255,0,0,1);
+    stroke-width:1
+}
+
+.ui-slider-handle {
+    border-radius: 1em;
 }
