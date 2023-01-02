@@ -259,13 +259,15 @@ function update_values_shown(before_pre, after_pre, trace, new_i) {
     if(trace[new_i]['before']) {
         before_node = $(`[data-node-id="${trace[new_i]['before']['node']}"]`, before_pre)
         before_node.addClass('evaluated-node')
-        before_node.prepend($(`<span class='value'>${trace[new_i]['before']['values']}</span>`))
+        value_span = $('<span>', {class: "value"}).text(trace[new_i]['before']['values'])
+        before_node.prepend(value_span)
     }
 
     if(trace[new_i]['after']) {
         after_node = $(`[data-node-id="${trace[new_i]['after']['node']}"]`, after_pre)
         after_node.addClass('evaluated-node')
-        after_node.prepend($(`<span class='value'>${trace[new_i]['after']['values']}</span>`))
+        value_span = $('<span>', {class: "value"}).text(trace[new_i]['after']['values'])
+        after_node.prepend(value_span)
     }
 
 
@@ -276,7 +278,10 @@ function generate_trace(step_data, step_i) {
     let before_pre =  $('<pre/>', {class: 'trace-block before-fix-trace'}).html(step_data['source'])
     let after_pre =  $('<pre/>', {class: 'trace-block after-fix-trace'}).html(step_data['dest'])
 
-    let explanation = $(`<div class="explanation"> Compare the effect of executing <pre>${step_data['unit_test_string']}</pre> with and without this fix:</div><hr/>`)
+    let explanation = $(
+        `<div class="explanation"> Comparing the effect of executing <pre>${step_data['unit_test_string']}</pre> with and without this fix</div><br/>
+        <div class="explanation">${step_data['effect_summary']}</div>
+        <hr/>`)
 
     //let slider = $(`<input type="range" orient="vertical" class="trace-slider" min="0" max="${step_data['synced_trace'].length}" step="1" value="${step_data['deviation_i']}"/>`)
     slider_id = `trace-slider-${step_i}`
@@ -285,10 +290,13 @@ function generate_trace(step_data, step_i) {
     let trace_contents = $('<div/>', {class: 'trace-div'})
 
     trace_contents.append(explanation)
-    trace_contents.append(before_pre)
 
-    trace_contents.append(slider)
-    trace_contents.append(after_pre)
+    let comparison_div = $('<div/>', {class: 'comparison-div'})
+    trace_contents.append(comparison_div)
+
+    comparison_div.append(before_pre)
+    comparison_div.append(slider)
+    comparison_div.append(after_pre)
 
     update_listener = function( event, ui ) {
             op_index = -ui.value
@@ -296,13 +304,38 @@ function generate_trace(step_data, step_i) {
             console.log( step_data['synced_trace'][op_index])
         }
 
+    // decide which point of interest to jump to on the slider:
+    slider_initial = step_data['points_of_interest']['last_matching_before_fix']  // default to the last correct thing evaluated (should always be there?)
+    if(step_data['points_of_interest']['first_wrong_before_fix']){
+        // prefer the first point where an explicitly wrong value is produced (if one exists)
+        slider_initial = step_data['points_of_interest']['first_wrong_before_fix']
+        console.log(`fix ${step_i}: using first_wrong_before_fix`)
+    }
+    else if(step_data['points_of_interest']['exception_before_fix']) {
+        // next, prefer highlighting the fact that an exception was thrown before the fix
+        slider_initial = step_data['points_of_interest']['exception_before_fix']
+        console.log(`fix ${step_i}: using exception_before_fix`)
+    }
+    else if(step_data['points_of_interest']['last_matching_after_fix'] > step_data['points_of_interest']['last_matching_before_fix']) {
+        // next preference is for showing a time the after-fix version did something right,
+        // if it was strictly later than the last time that the before-fix version did something right
+        slider_initial = step_data['points_of_interest']['last_matching_after_fix']
+        console.log(`fix ${step_i}: using last_matching_after_fix`)
+    }
+    else if(step_data['points_of_interest']['last_matching_before_fix']+1 < step_data['synced_trace'].length) {
+        // final not-quite-default heuristic:
+        // if there's *anything* after the last time that the before-fix code was correct, show that
+        slider_initial = step_data['points_of_interest']['last_matching_before_fix']+1
+        console.log(`fix ${step_i}: using step after last_matching_before_fix`)
+    }
+
     // use negative step values for the slider to make it go from top to bottom
     slider.slider({
         orientation: "vertical",
         range: "max",
         min: -step_data['synced_trace'].length+1,
         max: 0,
-        value: -step_data['deviation_i'],
+        value: -slider_initial,
         change: update_listener,
         slide: update_listener
     });
@@ -373,15 +406,24 @@ function load_sequence_data(data_source) {
     $('#code-div').append(final_code_pre)
     $('#tab-titles').append($(`<li><a href="#${final_id}">Final code after fixes</a></li>`))
 
+    // make tabs
     $( "#code-div" ).tabs({
         activate: function( event, ui ) {
             for(line of all_leader_lines) {
                 line.position()
+
             }
+            fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
+
+            $('.trace-slider', fix_elem).each(function(){
+                $(this).slider("value", $(this).slider("value"));
+                $(this).slider( "refresh" );
+            })
         }
     });
 
-    $('.trace-slider').each(function(){
+    fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
+    $('.trace-slider', fix_elem).each(function(){
         $(this).slider("value", $(this).slider("value"));
         $(this).slider( "refresh" );
     })

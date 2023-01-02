@@ -95,7 +95,7 @@
 .ast-node>.value {
     position: absolute;
     top: -20px;
-    stroke:rgb(25,25,25);
+    color: rgba(150, 100, 100, 1);
 }
 
 .insert-multiline-span {
@@ -194,4 +194,9 @@ input[name="test[]"] {
 
 .ui-slider-handle {
     border-radius: 1em;
+}
+
+.comparison-div {
+    justify-content: space-evenly;
+    display: flex;
 }
