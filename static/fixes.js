@@ -7,15 +7,12 @@ function highlight_nodes() {
             $('.ast-node').removeClass('highlight'); // stop highlighting everything else
 
             $(`[data-node-id="${node_id}"]`).addClass('highlight');
-
-            // $(this).connections({to: `[data-node-id="${node_id}"]`, class: 'mapping'})
         });
 
     $('.ast-node').mouseout(function(e)
         {
             const node_id = $(this).attr('data-node-id')
             $(`[data-node-id="${node_id}"]`).removeClass('highlight');
-            // $('.mapping').connections('remove');
         });
 }
 
@@ -91,7 +88,6 @@ function apply_special_styling() {
                 size: 2,
             }
           );
-        //line.prependTo(block)
         console.log(line)
         all_leader_lines.push(line)
     })
@@ -283,7 +279,6 @@ function generate_trace(step_data, step_i) {
         <div class="explanation">${step_data['effect_summary']}</div>
         <hr/>`)
 
-    //let slider = $(`<input type="range" orient="vertical" class="trace-slider" min="0" max="${step_data['synced_trace'].length}" step="1" value="${step_data['deviation_i']}"/>`)
     slider_id = `trace-slider-${step_i}`
     let slider = $('<div/>', {class: 'trace-slider', id: slider_id})
 
@@ -373,8 +368,6 @@ function generate_trace(step_data, step_i) {
     }
     slider.append(ticks)
 
-    //slider.slider("value", slider.slider("value"));
-
     return trace_contents
 }
 
@@ -417,7 +410,6 @@ function load_sequence_data(data_source) {
 
             $('.trace-slider', fix_elem).each(function(){
                 $(this).slider("value", $(this).slider("value"));
-                $(this).slider( "refresh" );
             })
         }
     });
@@ -425,8 +417,11 @@ function load_sequence_data(data_source) {
     fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
     $('.trace-slider', fix_elem).each(function(){
         $(this).slider("value", $(this).slider("value"));
-        $(this).slider( "refresh" );
     })
+
+    highlight_nodes()
+    apply_special_styling()
+
 }
 
 function animate_fix(){
@@ -519,7 +514,7 @@ function animate_fix(){
 }
 
 function reset_animation(elem){
-    $('span:not(.insertion-multiline-indicator)', elem).attr('style','');
+    $('span:not(.insertion-multiline-indicator)').attr('style','');
     $('.leader-line').attr('style','');
-    $('.code-block', fix_elem).attr('style','');
+    $('.code-block').attr('style','');
 }

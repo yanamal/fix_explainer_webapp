@@ -109,7 +109,7 @@
 .insert-span {
     background-color: rgba(0, 255, 0, 0.1);
     position:absolute;
-    top: -20px;
+    top: -14px;
     left: -10px;
     border-width: thin;
     border-style: solid;
