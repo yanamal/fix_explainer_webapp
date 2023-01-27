@@ -3,3 +3,4 @@ __pycache__
 .*
 !/.gitignore
 README.txt
+userdata.py

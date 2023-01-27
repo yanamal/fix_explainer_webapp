@@ -147,9 +147,12 @@
 }
 
 
-input[name="test[]"] {
+textarea[name="test[]"] {
     display: block;
-    width:500px;
+}
+
+textarea[name="correct[]"]{
+    display: block;
 }
 
 
@@ -199,4 +202,23 @@ input[name="test[]"] {
 .comparison-div {
     justify-content: space-evenly;
     display: flex;
+}
+
+#error-message {
+  display: inline-block;
+  margin: 50px;
+  color: red;
+}
+
+#bad-code{
+  display: inline-block;
+  margin: 50px;
+}
+
+.error-box {
+    border: red solid;
+    border-radius: 1em;
+    padding: 1em;
+    width: fit-content;
+    background-color: rgba(255,0,0,0.05);
 }

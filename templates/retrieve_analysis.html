@@ -11,40 +11,20 @@
     <script type="text/javascript" src="{{ url_for('static', filename='test_data.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='hw_data.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='fixes.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='request_form.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='retrieve_analysis.js') }}"></script>
 </head>
 <body>
-    <div id="form_div">
-        <form id="fix_form" onsubmit="return false;">
-            <div>
-                <label for="problem-select">Select the homework problem:</label>
-                <select id="problem-select" name="problem" required>
-                </select>
-            </div>
-            <!--label for="code">Incorrect student code: </label-->
-            <div>
-                <label>Incorrect student code:</label><br/>
-            <textarea type="textarea" rows="4" cols="50" name="code" id="code" required>def count_lte(target, nums):
-    count = 0
-    for Num in len(nums):
-        if num > 0 or num > target:
-            count += 1
-    return count
-    </textarea>
-            </div>
-        </form>
-        <button onclick="ajax_submit()">Generate Fix</button>
-    </div>
-    <hr/>
-    <button onclick='animate_fix()'>>></button>
+    <button id='animate-button' onclick='animate_fix()'>>></button>
     <div id="code-div">
         <ul id="tab-titles"></ul>
     </div>
+    <div id="syntax-error">
+        <h1 id="error-header"></h1>
+        <pre id="bad-code"></pre>
+        <pre id="error-message"></pre>
+    </div>
     <script type="text/javascript">
-        load_sequence_data(test_3)
-        // TODO: do this on each insert/change code
-        highlight_nodes()
-        apply_special_styling()
+        load_data_from_db({{ request_id }})
     </script>
 </body>
 </html>

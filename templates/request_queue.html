@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Help Request Queue</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='request_queue.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+</head>
+<body>
+    <h1>Help Request Queue</h1>
+
+<table id='request-queue'>
+    <tr>
+        <th>Time submitted</th>
+        <th>Student Name</th>
+        <th>Student Email</th>
+        <th>Problem</th>
+        <th>Code analysis result</th>
+        <th>Participating in study?</th>
+        <th>Student being helped?</th>
+
+    </tr>
+    {% for r in requests %}
+        <tr class="{{ 'in-study' if (r.student_email in in_study) else 'not-in-study' }}">
+            <td>{{ timezone('Etc/UTC').localize(r.request_time).astimezone(timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S %Z') }}</td>
+            <td>{{ r.student_name }}</td>
+            <td>{{ r.student_email }}</td>
+            <td>{{ r.problem.name }}</td>
+            <td>{{ r.result }}
+            {% if r.result != 'No Code Submitted' %}
+                (<a href='view_analysis?request_id={{ r.id }}'>code analysis</a>)
+            {% endif %}
+            </td>
+            <td>{{ 'Yes' if (r.student_email in in_study)}}</td>
+            <td>
+                <form method="post">
+                    <input type="hidden" name="being_helped" value="{{ r.id }}"/>
+                    <input type="submit" value="Being Helped"/>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+<hr/>
+    <h1>Already Being Helped</h1>
+<table id='processed-requests'>
+    <tr>
+        <th>Time submitted</th>
+        <th>Student Name</th>
+        <th>Student Email</th>
+        <th>Problem</th>
+        <th>Code analysis result</th>
+        <th>Participating in study?</th>
+
+    </tr>
+    {% for r in processed_requests %}
+        <tr class="{{ 'in-study' if (r.student_email in in_study) else 'not-in-study' }}">
+            <td>{{ timezone('Etc/UTC').localize(r.request_time).astimezone(timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S %Z') }}</td>
+            <td>{{ r.student_name }}</td>
+            <td>{{ r.student_email }}</td>
+            <td>{{ r.problem.name }}</td>
+            <td>{{ r.result }}
+            {% if r.result != 'No Code Submitted' %}
+                (<a href='view_analysis?request_id={{ r.id }}'>code analysis</a>)
+            {% endif %}
+            </td>
+            <td>{{ 'Yes' if (r.student_email in in_study)}}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+</body>

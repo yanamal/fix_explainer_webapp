@@ -102,9 +102,13 @@ function apply_special_styling() {
     })
 
     $('.insert-span').each(function(){
-        insertion_symbol_span = $('<span/>', {class: 'insertion-inline-indicator'}).html('&#8911;')[0]
-        this.parentNode.insertBefore(insertion_symbol_span, this)
-        insertion_symbol_span.insertBefore(this, null)
+        if(this.parentElement.className != 'insertion-inline-indicator') {
+            // TODO: why does this happen twice?
+            // TODO: try using :before css or something?
+            insertion_symbol_span = $('<span/>', {class: 'insertion-inline-indicator'}).html('&#8911;')[0]
+            this.parentNode.insertBefore(insertion_symbol_span, this)
+            insertion_symbol_span.insertBefore(this, null)
+        }
     })
 
 }
@@ -198,13 +202,25 @@ function generate_inline_fix_html(source, dest, el_id) {
             }
         }
 
+        // TODO: deal more gracefully with fixes that delete + insert
+        // (so, for example, the text before the insert is both in the old code and generated in text_node_before)
+        //text_node_before=null
+        //text_node_after=null
+
         // finally, put together and insert everything that needs to be inserted
         insert_span = $('<span/>', {class: 'insert-span'})
         for(elem of [text_node_before, to_insert, text_node_after]){
             insert_span.append(elem)
         }
         if(insert_span.text().includes('\n')) {
+            // if this is a multiline insert (the text spans several lines), change its class so it looks different.
             insert_span.attr('class','insert-multiline-span')
+        }
+        else {
+            // this is an inline fix, even with text before/after. nevermind, get rid of the text before/after
+            // because sometimes it's spurious. TODO: cleanup
+            insert_span = $('<span/>', {class: 'insert-span'})
+            insert_span.append(to_insert)
         }
 
         insertion_parent[0].insertBefore(insert_span[0], next_sib)
@@ -223,7 +239,9 @@ function generate_inline_fix_html(source, dest, el_id) {
             this.setAttribute('data-insert-before', next_sib_id)
         }
 
-        add_insertion_placeholder(this, code_pre)
+        this.setAttribute('data-insert-before', node_id)  // TODO: clean up hacky fix
+
+        add_insertion_placeholder(this, dest_code_pre) // TODO: clean up hacky fix
 
     })
 

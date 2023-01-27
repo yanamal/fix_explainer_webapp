@@ -1,0 +1,41 @@
+option.inactive {
+    display: none;
+}
+
+form div {
+    padding: 10px;
+}
+
+label.error {
+    border: red solid 1px;
+    border-radius: 0.3em;
+    background-color: rgba(255,0,0,0.1);
+    padding: 2px;
+}
+
+#error-message {
+  display: inline-block;
+  margin: 50px;
+  color: red;
+}
+
+#bad-code{
+  display: inline-block;
+  margin: 50px;
+}
+
+.leader-line {
+    z-index: 102;
+}
+
+[aria-describedby="processing"] .ui-dialog-titlebar {
+    display: none;
+}
+
+#processing {
+    text-align: center;
+}
+
+ul {
+    margin:0;
+}

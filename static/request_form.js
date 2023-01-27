@@ -1,12 +1,20 @@
+$( document ).ready(function() {
+    for(problem in homework_1){
+        $('#problem-select').append($('<option/>', {value: problem}).text(problem))
+    }
+    $("#problem-select").prop("selectedIndex", -1);
+});
+
 function ajax_submit(){
     let form = new FormData(document.forms.fix_form)
+    console.log('sending request')
     $.ajax({
         type: "POST",
         url: "/generate",
         data: JSON.stringify({
             'code': form.get('code'),
-            'correct': form.getAll('correct[]'),
-            'tests': form.getAll('test[]')
+            'correct': homework_1[form.get('problem')]['solutions'],
+            'tests': homework_1[form.get('problem')]['tests']
         }),
         contentType: "application/json",
         dataType: 'json',
@@ -19,20 +27,4 @@ function ajax_submit(){
             apply_special_styling()
         }
     });
-}
-
-function add_unit_test(){
-    $('#test_fields').append('<input type="text" name="test[]">')
-}
-
-function remove_unit_test(){
-    $('input[name="test[]"]').last().remove()
-}
-
-function add_correct_version(){
-    $('#correct_fields').append('<textarea type="textarea" rows="4" cols="50" name="correct[]"></textarea>')
-}
-
-function remove_correct_version(){
-    $('textarea[name="correct[]"]').last().remove()
 }

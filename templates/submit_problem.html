@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit new homework problem</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='fixes.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.3/leader-line.min.js" integrity="sha512-aFBNsI3+D6ObLLtyKwdZPZzDbcCC6+Bh+2UNV8HC0R95BpcBT+dmmZ5NMpJi/Ic8uO0W7FGcg33IfuHg+7Ryew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='submit_form.js') }}"></script>
+</head>
+<body>
+    <div id="errors">
+        {% if syntax_error %}
+            <div class="error-box" role="alert" id='syntax-error'>
+                Syntax error in {{ which }}:
+                <pre id="bad-code">{{ bad_code }}</pre>
+                <pre id="error-message">{{error}}</pre>
+                <br/>
+                Please fix and resubmit.
+            </div>
+            <hr/>
+            <script type="text/javascript">
+                point_to_syntax_error({{ lineno }}, {{ offset }})
+            </script>
+        {% endif %}
+        {% if test_failed %}
+            <div class="error-box" role="alert" id='test-failed'>
+                Some solutions do not pass all unit tests.
+                <br/>
+                For example, this solution:
+                <pre id="failing-code">{{ failing_code }}</pre>
+                fails this unit test:
+                <pre id="failing-test">{{ failing_test }}</pre>
+                <br/>
+                Please fix and resubmit.
+            </div>
+            <hr/>
+        {% endif %}
+    </div>
+    <div id="form_div">
+        <form id="fix_form" method="post">
+            <div id='medatada'>
+                <label for='homework'>Homework name or number (e.g. HW1):</label>
+{% if prefilled %}
+                <input type="text" name="homework" value="{{prefilled.homework}}" required>
+{% else %}
+                <input type="text" name="homework" required>
+{% endif %}
+
+                <br/>
+
+                <label for='prob_name'>Problem name (e.g. name of function the student needs to implement):</label>
+{% if prefilled %}
+                <input type="text" name="prob_name" value="{{prefilled.prob_name}}" required>
+{% else %}
+                <input type="text" name="prob_name" required>
+{% endif %}
+            </div>
+
+            <div id='correct_fields'>
+                <label>Correct solution(s):</label><br/>
+{% if prefilled %}
+    {% for correct in prefilled.correct %}
+            <textarea type="textarea" rows="10" cols="70" name="correct[]">{{ correct }}</textarea>
+    {% endfor %}
+{% else %}
+            <textarea type="textarea" rows="10" cols="70" name="correct[]">def helloWorld():
+    return 'Hello World!'</textarea>
+{% endif %}
+
+            </div>
+            <button onclick="remove_correct_version(); return false">-</button>
+            <button onclick="add_correct_version(); return false">+</button>
+
+            <div id='test_fields'>
+                <label>Unit test(s):</label><br/>
+{% if prefilled %}
+    {% for test in prefilled.tests %}
+            <textarea name="test[]" rows="1" cols="50">{{ test }}</textarea>
+    {% endfor %}
+{% else %}
+            <textarea name="test[]" rows="1" cols="50">helloWorld() == 'Hello World!'</textarea>
+{% endif %}
+
+            </div>
+            <button onclick="remove_unit_test(); return false">-</button>
+            <button onclick="add_unit_test(); return false">+</button>
+            <br/>
+            <hr/>
+            <br/>
+            <input type="submit" value="Submit">
+        </form>
+</div>
+</body>
+</html>

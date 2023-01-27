@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Help Request Form</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='help_request.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/additional-methods.min.js"></script>
+    <script src="https://malsup.github.io/jquery.form.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.3/leader-line.min.js" integrity="sha512-aFBNsI3+D6ObLLtyKwdZPZzDbcCC6+Bh+2UNV8HC0R95BpcBT+dmmZ5NMpJi/Ic8uO0W7FGcg33IfuHg+7Ryew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='help_request.js') }}"></script>
+</head>
+<body>
+    <h1>Office Hours Help Form</h1>
+    Please answer a couple of questions to join the help queue.
+    <br/>
+    <form id="request-form" method="post">
+        <div>
+            <label for='student-name'>Your name:</label>
+            <input type="text" name="student-name" required>
+        </div>
+        <div>
+            <label for="email">Your umich.edu email:</label>
+            <input type="email" name = "email" id="email" pattern=".+@umich\.edu" required>
+        </div>
+        <div>
+            <label for='homework'>Which homework are you working on?</label>
+            <select required name='homework' id='homework' required>
+                <option disabled selected value> -- select homework -- </option>
+                {% for hw in homeworks %}
+                    <option value="{{ hw }}">{{ hw }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for='problem'>In that homework, which problem would you like help with?</label>
+            <select required name='problem' id='problem' required>
+                <option disabled selected value id='deselect-problem'> -- select problem -- </option>
+                {% for p in problems %}
+                    <option value="{{ p.id }}" data-hw="{{ p.homework }}" class="inactive">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            What type of help are you looking for?
+            <br/>
+
+            <input type="checkbox" name="Conceptual" value="Conceptual">
+            <label for="Conceptual">Conceptual: I need help understanding the concepts involved in solving this homework/project</label>
+            <br/>
+
+            <input type="checkbox" name="Implementing" value="Implementing">
+            <label for="Implementing">Implementing: I need help implementing or writing the code</label>
+            <br/>
+
+            <input type="checkbox" name="Debugging" value="Debugging">
+            <label for="Debugging">Debugging: I need help fixing errors in my existing code</label>
+            <br/>
+        </div>
+        <div>
+            <label for="code">
+                Paste in your current code for this problem
+                <ul>
+                    <li>For homeworks that ask you to make a class, <b>paste your entire class so far</b></li>
+                    <li><b>Leave blank</b> if you only have conceptual questions that aren't related to your code</li>
+                </ul>
+            </label>
+            <br>
+            <textarea name="code" rows="10" cols="70"></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+
+    <div class="error-box" role="alert" id='syntax-error' title="Syntax Error">
+        Your code has a syntax error:
+        <div>
+        <pre id="bad-code">{{ bad_code }}</pre>
+        <pre id="error-message">{{error}}</pre>
+        </div>
+        <br/>
+        Are you sure you want to submit it like this?
+    </div>
+
+    <div class="wait-modal" id="processing">
+        Processing...
+    </div>
+
+</body>
