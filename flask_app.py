@@ -5,9 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_user, login_required, logout_user
 from flask_migrate import Migrate
 import json
-from python_fix_explainer import fix_code, has_failing_unit_test
+from python_fix_explainer import fix_code, has_failing_unit_test, MutableAst, breadth_first
 from pytz import timezone
 import userdata
+import ast
 
 current_semester = "Spring2023"
 
@@ -126,13 +127,16 @@ def student_help_request():
         return render_template('help_request.html', problems=problems, homeworks=homeworks)
     # respond to post request (submit help request)
     elif request.method == "POST":
-        student_code = request.form.get('code').strip()
+        student_code=""
+        code_file = request.files.get('codefile')
+        if code_file:
+            student_code = code_file.read()  # .decode('utf-8')
         if len(student_code) > 0:
             try:
                 compile(student_code, 'code field', 'exec')
             except SyntaxError as e:
                 syntax_error_data = {
-                        'code': request.form.get('code'),
+                        'code': student_code.decode('utf-8'),
                         'message': str(e),
                         'lineno': e.lineno,
                         'offset': e.offset,
@@ -145,7 +149,7 @@ def student_help_request():
                         is_conceptual = 'Conceptual' in request.form,
                         is_implementing = 'Implementing' in request.form,
                         is_debugging = 'Debugging' in request.form,
-                        student_code = request.form.get('code'),
+                        student_code = student_code,
                         result = 'Syntax Error',
                         analysis_output = json.dumps(syntax_error_data)
                     )
@@ -167,10 +171,12 @@ def student_help_request():
 
             # if we are here, the student code compiled.
             prob = Problem.query.filter_by(id=request.form.get('problem')).first()
+            print(reduce_code(student_code))
             fix_output = fix_code(
-                request.form.get('code'),
+                reduce_code(student_code),
                 [t.code for t in prob.tests],
-                [p.code for p in prob.solutions])
+                [reduce_code(p.code) for p in prob.solutions])
+            print('fix_code done')
             analysis_request = HelpRequest(
                 student_name=request.form.get('student-name'),
                 student_email=request.form.get('email'),
@@ -178,8 +184,8 @@ def student_help_request():
                 is_conceptual = 'Conceptual' in request.form,
                 is_implementing = 'Implementing' in request.form,
                 is_debugging = 'Debugging' in request.form,
-                student_code = request.form.get('code'),
-                result = 'Fixes Generated',
+                student_code = student_code,
+                result = 'Analysis Generated',
                 analysis_output = json.dumps(fix_output)
             )
             db.session.add(analysis_request)
@@ -198,7 +204,7 @@ def student_help_request():
             is_conceptual = 'Conceptual' in request.form,
             is_implementing = 'Implementing' in request.form,
             is_debugging = 'Debugging' in request.form,
-            student_code = request.form.get('code'),
+            student_code = student_code,
             result = 'No Code Submitted',
             analysis_output = ''
         )
@@ -269,17 +275,45 @@ def submit_page():
 # ~~~~~~~~
 
 
+def reduce_code(code_str):
+    code_tree = MutableAst(py_ast=ast.parse(code_str))
+
+    to_remove = []
+    for node in breadth_first(code_tree):
+        if node.nodeType == 'Str' and node.parent.nodeType == 'Expr':
+            to_remove.append(node.parent)
+        elif node.nodeType == 'FunctionDef' and node.name == 'FunctionDef name: main':
+            to_remove.append(node)
+        elif node.nodeType == 'Attribute' \
+                and node.name == 'Attribute(ctx=Load)(attr = TestCase)' \
+                and node.children_dict['value'].name == 'Load identifier unittest' \
+                and node.parent.name == 'NodeList: bases of ClassDef':
+            to_remove.append(node.parent.parent)
+        elif node.nodeType == 'Compare' and node.name == "Compare operators: ['Eq']" \
+                and node.parent.name == 'If' \
+                and node.children_dict['left'].name == 'Load identifier __name__' \
+                and node.children_dict['comparators'].children_dict[0].name == 'Str(s = __main__)':
+            to_remove.append(node.parent)
+
+    for node in to_remove:
+        node.parent.remove_child(node)
+
+    return str(code_tree)
+
+# ~~~~~~~~
+
+
 class Solution(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # TODO: make sure this is long enough, get rid of character limit?..
-    code = db.Column(db.String(4096))
+    code = db.Column(db.String(65535))
     problem_id = db.Column(db.Integer, db.ForeignKey('problem.id'),
         nullable=False)
 
 
 class Unittest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(4096))
+    code = db.Column(db.String(65535))
     problem_id = db.Column(db.Integer, db.ForeignKey('problem.id'),
         nullable=False)
 
@@ -304,6 +338,6 @@ class HelpRequest(db.Model):
     is_conceptual = db.Column(db.Boolean, default=False)
     is_implementing = db.Column(db.Boolean, default=False)
     is_debugging = db.Column(db.Boolean, default=False)
-    student_code = db.Column(db.String(4096))
+    student_code = db.Column(db.String(65535))
     result = db.Column(db.String(4096))  # no code, syntax error, or generated fixes
     analysis_output = db.Column(db.String(65535))  # stringified json. TODO: was there a datatype for just json?..

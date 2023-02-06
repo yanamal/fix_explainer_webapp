@@ -44,7 +44,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div>
+        <div class="section">
             What type of help are you looking for?
             <br/>
 
@@ -60,16 +60,17 @@
             <label for="Debugging">Debugging: I need help fixing errors in my existing code</label>
             <br/>
         </div>
-        <div>
-            <label for="code">
-                Paste in your current code for this problem
+        <div class="section">
+            <label for="codefile">
+                Upload your code so far for this homework
                 <ul>
-                    <li>For homeworks that ask you to make a class, <b>paste your entire class so far</b></li>
-                    <li><b>Leave blank</b> if you only have conceptual questions that aren't related to your code</li>
+                    <!--li>For homeworks that ask you to make a class, <b>paste your entire class so far</b></li-->
+                    <li>You can <b>leave this field blank</b>(don't select a file) if you only have conceptual questions that aren't related to your code</li>
                 </ul>
             </label>
             <br>
-            <textarea name="code" rows="10" cols="70"></textarea>
+            <!--textarea name="code" rows="10" cols="70"></textarea-->
+            <input type="file" name="codefile">
         </div>
         <div>
             <input type="submit" value="Submit">

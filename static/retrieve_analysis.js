@@ -7,7 +7,7 @@ function load_data_from_db(help_request_id){
         },
         success: function(result) {
             console.log(result);
-            if(result.result_type=="Fixes Generated") {
+            if(result.result_type=="Fixes Generated" || result.result_type=="Analysis Generated") { // whoopsie, changed the identifier string in the middle of using the database
                 //$( "#code-div" ).tabs( "destroy" ); // TODO: move back to loading logic, make sure tabs exist first somehow
                 load_sequence_data(result.analysis)
                 highlight_nodes()

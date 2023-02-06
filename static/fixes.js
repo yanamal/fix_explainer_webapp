@@ -261,6 +261,10 @@ function generate_inline_fix_html(source, dest, el_id) {
 
     tab_contents.append(dest_code_pre)
     tab_contents.append(code_pre)
+
+    collapse_unchanged(code_pre)
+    collapse_unchanged(dest_code_pre)
+
     return tab_contents
 }
 
@@ -406,16 +410,22 @@ function load_sequence_data(data_source) {
         $('#code-div').append(fix_html)
         $('#tab-titles').append($(`<li><a href="#${el_id}">${tab_title}</a></li>`))
 
-        fix_html.append(generate_trace(step_data, step_i))
-
+        if(step_data['synced_trace'].length>0) {
+            // Generate trace info (unless there is no actual trace data present)
+            fix_html.append(generate_trace(step_data, step_i))
+        }
         step_i += 1
     }
 
     // Generate final tab - just the last fully corrected code state
     final_id = 'final_code'
+    final_code_text = 'Final code after fixes'
+    if(data_source['fix_sequence'].length <= 0) {
+        final_code_text = 'Student code (zero fixes generated)'
+    }
     let final_code_pre = $('<pre/>', {class: 'code-block before-fix-code', id: final_id}).html( data_source['final_code'])
     $('#code-div').append(final_code_pre)
-    $('#tab-titles').append($(`<li><a href="#${final_id}">Final code after fixes</a></li>`))
+    $('#tab-titles').append($(`<li><a href="#${final_id}">${final_code_text}</a></li>`))
 
     // make tabs
     $( "#code-div" ).tabs({
@@ -440,6 +450,13 @@ function load_sequence_data(data_source) {
     highlight_nodes()
     apply_special_styling()
 
+}
+
+function collapse_unchanged(code_block) {
+    for(edit_class of ['delete-node', 'move-node', 'insert-node', 'rename-node']) {
+        $(`.${edit_class}`, code_block).parents().addClass('contains-edit')
+    }
+    $('.ast-node.contains-edit>.ast-node:not(.contains-edit)',code_block).css('opacity','0.2')
 }
 
 function animate_fix(){

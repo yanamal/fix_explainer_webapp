@@ -58,6 +58,7 @@
 .delete-text {
     background-color: rgb(255, 233, 233);
     text-decoration: line-through;
+    opacity: 1 !important;
 }
 .delete-text>* {
     text-decoration: none;
@@ -75,11 +76,13 @@
     border-style: solid;
     border-radius: 11px;
     padding: 3px;
+    opacity: 1 !important;
 }
 
 // TODO: redundant?
 .rename-node {
     position:relative;
+    opacity: 1 !important;
 }
 
 .before-fix-code .rename-node>.text-span {
