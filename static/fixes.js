@@ -62,7 +62,10 @@ function add_insertion_placeholder(inserted_elem, insert_into) {
     placeholder_span = document.createElement('span')
     placeholder_span.className = "insertion-placeholder"
     placeholder_span.id = `insert_${inserted_elem.id}`
-    target_parent.insertBefore(placeholder_span, target_before)
+    if(target_parent){
+        // TODO: log some kind of issue if not
+        target_parent.insertBefore(placeholder_span, target_before)
+    }
 
     return placeholder_span
 }
@@ -177,12 +180,17 @@ function generate_inline_fix_html(source, dest, el_id) {
         next_sib_id = $(this).nextAll('.ast-node:first').attr('data-node-id') // may be undefined, if this is the last node in the parent
 
         insertion_parent = code_pre.find(`[data-node-id="${parent_id}"]`)
+        if(insertion_parent.length <= 0) {
+            // TODO: why does insertion parent sometimes not exist? (e.g. 313 fix 27)
+            return
+        }
 
         // Find the element that would be before the insertion spot, to check whether it is a text-span
         elem_before_insertion = insertion_parent.children().last()
         next_sib = undefined // also find actual sibling to insert before
         if(next_sib_id){
-            next_sib = insertion_parent.find(`[data-node-id="${next_sib_id}"]`)[0]
+            // TODO: in cases where the next_sib is NOT a sibling in the pre-fix code (why not? e.g. 308? fix 6), the next sibling will not be found
+            next_sib = insertion_parent.children(`[data-node-id="${next_sib_id}"]`)[0]
             elem_before_insertion = $(next_sib).prev() // TODO: fix names or types - next_sib is element, elem_before_insertion is jquery object
         }
 
@@ -223,6 +231,8 @@ function generate_inline_fix_html(source, dest, el_id) {
             insert_span.append(to_insert)
         }
 
+        console.log(insertion_parent[0])
+        console.log(next_sib)
         insertion_parent[0].insertBefore(insert_span[0], next_sib)
     })
 
@@ -262,8 +272,8 @@ function generate_inline_fix_html(source, dest, el_id) {
     tab_contents.append(dest_code_pre)
     tab_contents.append(code_pre)
 
-    collapse_unchanged(code_pre)
-    collapse_unchanged(dest_code_pre)
+    hide_unchanged(code_pre)
+    hide_unchanged(dest_code_pre)
 
     return tab_contents
 }
@@ -301,7 +311,7 @@ function generate_trace(step_data, step_i) {
         <div class="explanation">${step_data['effect_summary']}</div>
         <hr/>`)
 
-    slider_id = `trace-slider-${step_i}`
+    let slider_id = `trace-slider-${step_i}`
     let slider = $('<div/>', {class: 'trace-slider', id: slider_id})
 
     let trace_contents = $('<div/>', {class: 'trace-div'})
@@ -318,6 +328,10 @@ function generate_trace(step_data, step_i) {
     update_listener = function( event, ui ) {
             op_index = -ui.value
             update_values_shown(before_pre, after_pre, step_data['synced_trace'], op_index)
+            log_custom_event('runtime_slider', {
+                op_index: op_index,
+                slider_id: slider_id
+            })
             console.log( step_data['synced_trace'][op_index])
         }
 
@@ -393,6 +407,22 @@ function generate_trace(step_data, step_i) {
     return trace_contents
 }
 
+function generate_side_by_side(before_html, after_html, final_id) {
+
+    let side_by_side =  $('<div/>', {class: 'side-by-side', id: final_id})
+    before_pre = $('<pre/>', {class: 'code-block side-by-side before'}).html(before_html)
+    wrap_text_in_spans(before_pre, 'text-span')
+    before_container = $('<div class="side-by-side half-width"><h2>Student code</h2></div>')
+    before_container.append(before_pre)
+    side_by_side.append(before_container)
+    after_pre = $('<pre/>', {class: 'code-block side-by-side after'}).html(after_html)
+    wrap_text_in_spans(after_pre, 'text-span')
+    after_container = $('<div class="side-by-side half-width"><h2>Generated correction</h2></div>')
+    after_container.append(after_pre)
+    side_by_side.append(after_container)
+    return side_by_side
+}
+
 
 function load_sequence_data(data_source) {
     // reset:
@@ -402,28 +432,46 @@ function load_sequence_data(data_source) {
     }
     all_leader_lines = []
     // regenerate:
-    step_i = 1
-    for (step_data of data_source['fix_sequence']) {
-        el_id = `fix-${step_i}`
-        tab_title = `Fix ${step_i}`
-        fix_html = generate_inline_fix_html(step_data['source'], step_data['dest'], el_id)
-        $('#code-div').append(fix_html)
-        $('#tab-titles').append($(`<li><a href="#${el_id}">${tab_title}</a></li>`))
 
-        if(step_data['synced_trace'].length>0) {
-            // Generate trace info (unless there is no actual trace data present)
-            fix_html.append(generate_trace(step_data, step_i))
+    if(data_source['fix_sequence'].length < 15 || (!data_source['is_static_analysis_only'] )) {
+        // only show steps if this is NOT a static-only analysis with too many fixes
+        // TODO: redundant with server-side choice to not generate any?..
+        let step_i = 1
+        for (step_data of data_source['fix_sequence']) {
+            el_id = `fix-${step_i}`
+            tab_title = `Fix ${step_i}`
+            fix_html = generate_inline_fix_html(step_data['source'], step_data['dest'], el_id)
+            $('#code-div').append(fix_html)
+            $('#tab-titles').append($(`<li id="${el_id}_tab"><a href="#${el_id}">${tab_title}</a></li>`))
+
+            if(('synced_trace' in step_data) && step_data['synced_trace'].length>0) {
+                // Generate trace info (unless there is no actual trace data present)
+                fix_html.append(generate_trace(step_data, step_i))
+            }
+            step_i += 1
         }
-        step_i += 1
     }
+    $('#tab-titles').append($('#animate-button'))
 
     // Generate final tab - just the last fully corrected code state
-    final_id = 'final_code'
-    final_code_text = 'Final code after fixes'
-    if(data_source['fix_sequence'].length <= 0) {
+    final_id = 'final_code'  // TODO: set final_id on final_code_pre regardless of which option it is?
+    if(data_source['fix_sequence'].length <= 0 && (!data_source['is_static_analysis_only']) ) {
         final_code_text = 'Student code (zero fixes generated)'
+        final_code_pre = $('<pre/>', {class: 'code-block before-fix-code', id: final_id}).html( data_source['final_code'])
     }
-    let final_code_pre = $('<pre/>', {class: 'code-block before-fix-code', id: final_id}).html( data_source['final_code'])
+    else {
+        final_code_text = 'Final code after fixes'
+        final_code_pre = $('<pre/>', {class: 'code-block before-fix-code', id: final_id}).html( data_source['final_code'])
+
+        // Also add side-by-side overview
+        overview_id = 'overview'
+        $('#tab-titles').prepend($(`<li id="${overview_id}_tab"><a href="#${overview_id}">Overview of Changes</a></li>`))
+        overview_pre = generate_side_by_side(data_source['overall_comparison']['before'], data_source['overall_comparison']['after'], overview_id)
+
+        $('#code-div').prepend(overview_pre)
+    }
+
+
     $('#code-div').append(final_code_pre)
     $('#tab-titles').append($(`<li><a href="#${final_id}">${final_code_text}</a></li>`))
 
@@ -432,31 +480,62 @@ function load_sequence_data(data_source) {
         activate: function( event, ui ) {
             for(line of all_leader_lines) {
                 line.position()
-
             }
             fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
 
             $('.trace-slider', fix_elem).each(function(){
                 $(this).slider("value", $(this).slider("value"));
+                $(this).height($(this).parent().height()-10)
             })
+
+            send_logs()
         }
     });
 
     fix_elem = $('#code-div').tabs().data().uiTabs.panels[$('#code-div').tabs('option', 'active')]
     $('.trace-slider', fix_elem).each(function(){
         $(this).slider("value", $(this).slider("value"));
+        $(this).height($(this).parent().height()-10)
     })
+
+    // add any warnings/clarifications on shortened analysis:
+    if(data_source['is_static_analysis_only']) {
+        $('#warning-div').append('Only static analysis was performed (no simplification or runtime analysis) because: <br/>'+data_source['static_only_reason']+'<br/>')
+    }
+    if(data_source['is_zero_fixes']) {
+        $('#warning-div').append('Zero fixes were generated because: <br/>'+data_source['zero_fixes_reason'])
+    }
+    $('#tab-titles').prepend($('#warning-div'))  // TODO: a better place?
 
     highlight_nodes()
     apply_special_styling()
 
 }
 
-function collapse_unchanged(code_block) {
+// TODO: move to retrieve_analysis.js?
+function add_exercise_link(chapter, practice_url, exercise_url, num_exercises)
+{
+    console.log(chapter, exercise_url)
+    practice_description = ''
+    if(chapter) {
+        practice_description += `This assignment is about the chapter on ${chapter}. <br/>`
+    }
+    if(practice_url) {
+        practice_description += `This <a href="${practice_url}">practice exercise</a> may be helpful for the student.<br/>`
+    }
+    if(exercise_url) {
+        practice_description += `There are <a  target="_blank"  href="${exercise_url}">${num_exercises} exercises</a> available for this chapter, which may be helpful for the student.`
+
+    }
+    $('#warning-div').prepend(practice_description)
+}
+
+function hide_unchanged(code_block) {
     for(edit_class of ['delete-node', 'move-node', 'insert-node', 'rename-node']) {
         $(`.${edit_class}`, code_block).parents().addClass('contains-edit')
+        $(`.${edit_class}`, code_block).addClass('contains-edit')
+
     }
-    $('.ast-node.contains-edit>.ast-node:not(.contains-edit)',code_block).css('opacity','0.2')
 }
 
 function animate_fix(){
@@ -551,5 +630,5 @@ function animate_fix(){
 function reset_animation(elem){
     $('span:not(.insertion-multiline-indicator)').attr('style','');
     $('.leader-line').attr('style','');
-    $('.code-block').attr('style','');
+    $('.code-block', elem).attr('style','');
 }

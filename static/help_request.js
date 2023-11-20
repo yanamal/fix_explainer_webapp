@@ -42,7 +42,14 @@ update_problems = function() {
     hw = document.getElementById('homework').value
     if(hw != '') {
         $(`#problem option[data-hw=${hw}]`).removeClass('inactive')
-        $(`#deselect-problem`).prop('selected', true)
+        if($(`#problem option[data-hw=${hw}]`).length > 1) {
+            // More than one problem in the homework - clear selection
+            $(`#deselect-problem`).prop('selected', true)
+        }
+        else {
+            // only one problem in the homework - select that one
+            $(`#problem option[data-hw=${hw}]`).prop('selected', true)
+        }
     }
 }
 

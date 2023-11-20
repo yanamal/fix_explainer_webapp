@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Encoding Error</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+</head>
+<body>
+    <h1>File encoding error</h1>
+    The server could not read your uploaded python file. It looks like the file is using the wrong encoding.
+    <br/> <br/>
+    Please ensure that the file you are submitting is a text file in the UTF-8 encoding. For example, in VS Code, it should say UTF-8 in the bottom-right corner:
+    <br/>
+    <img src="{{ url_for('static', filename='encoding.PNG') }}">
+    <br/>
+
+    To change this in VS Code, click on the current encoding, select "Save with encoding", then select the UTF-8.
+    <br/><br/>
+    <a href="{{ url_for('student_help_request') }}">Return to help request form</a>
+</body>

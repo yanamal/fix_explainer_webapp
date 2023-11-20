@@ -10,20 +10,52 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.3/leader-line.min.js" integrity="sha512-aFBNsI3+D6ObLLtyKwdZPZzDbcCC6+Bh+2UNV8HC0R95BpcBT+dmmZ5NMpJi/Ic8uO0W7FGcg33IfuHg+7Ryew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='test_data.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='hw_data.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='logging.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='fixes.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='retrieve_analysis.js') }}"></script>
 </head>
 <body>
+    <div id="warning-div"></div>
     <button id='animate-button' onclick='animate_fix()'>>></button>
     <div id="code-div">
         <ul id="tab-titles"></ul>
     </div>
+    <div id="practice_links" style="position:fixed;bottom:0;font-family: Arial,Helvetica,sans-serif;font-weight: bold;background: #e9e9e9;border: 1px solid #dddddd;width: 98%;padding: 5px;z-index: 1;">
+        <span id="feedback" style="float: right;">
+              <fieldset id="is_helpful" style="display: inline-block;">
+                <legend>Was seeing this analysis helpful? </legend>
+                <label for="yes_helpful" id="yes_helpful_label">Yes</label>
+                <input type="radio" name="helpful" id="yes_helpful">
+                <label for="no_helpful" id="no_helpful_label">No</label>
+                <input type="radio" name="helpful" id="no_helpful">
+              </fieldset>
+            <button id="report_button">Feedback or bug report</button>
+        </span>
+    </div>
     <div id="syntax-error">
         <h1 id="error-header"></h1>
-        <pre id="bad-code"></pre>
         <pre id="error-message"></pre>
+        <pre id="bad-code"></pre>
+    </div>
+    <div id="bug_report" title = "Feedback or bug report">
+        <form id="bug_form">
+            <input type="hidden" value="{{ request_id }}"></input>
+            <input type="checkbox" name="interface_broken" value="interface_broken"></input>
+            <label for="interface_broken">This page is broken or not displaying correctly</label><br/>
+            <input type="checkbox" name="analysis_bad" value="analysis_bad"></input>
+            <label for="analysis_bad">Something is wrong with the generated fixes and/or explanations</label><br/>
+            <input type="checkbox" name="confusing" value="confusing"></input>
+            <label for="confusing">The analysis information is confusing or hard to undertand in some way</label><br/>
+
+            <h2>Feedback or description of issue:</h2>
+            <textarea type="textarea" name="feedback_text" rows="3" cols="50" value=""></textarea>
+        </form>
     </div>
     <script type="text/javascript">
+        // data about the page relevant to interaction logs:
+        page_data = {
+            help_request_id: {{ request_id }}
+        }
         load_data_from_db({{ request_id }})
     </script>
 </body>

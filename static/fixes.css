@@ -1,8 +1,16 @@
+
+#tab-titles {
+    position: fixed;
+    z-index: 1;
+    width: 98%;
+    top: 0;
+}
+
 .highlight {
-    background: #eeeeee;
+    background: #eeeeee !important;
     border-width: thin;
-    border: black;
-    border-style: dotted;
+    border: black !important;
+    border-style: dotted  !important;
 }
 
 .code-block {
@@ -88,11 +96,13 @@
 .before-fix-code .rename-node>.text-span {
     background-color: rgb(255, 233, 233);
     text-decoration: line-through;
+    opacity: 1 !important;
 }
 
 .rename-node>.replacement {
     position: absolute;
     top: -20px;
+    opacity: 1 !important;
 }
 
 .ast-node>.value {
@@ -225,3 +235,32 @@ textarea[name="correct[]"]{
     width: fit-content;
     background-color: rgba(255,0,0,0.05);
 }
+
+#code-div::before{
+    content: "";
+    height: 40px;
+    display: block;
+}
+
+.ast-node.contains-edit>.ast-node:not(.contains-edit) {
+    opacity: 0.4;
+}
+
+.side-by-side {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.half-width {
+    width: 48%;
+    overflow: scroll;
+}
+
+.side-by-side.after .insert-node>.text-span {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.side-by-side .rename-node>.text-span {
+    background-color: rgba(255, 165, 0, 0.1);
+}
+

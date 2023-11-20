@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interaction Logs</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='request_queue.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+</head>
+<body>
+    <table id='log_table' style='border:1px black'>
+        <tr>
+            <th>User IP</th>
+            <th>Start time</th>
+            <th>Which help request?</th>
+            <th>Logs</th>
+        </tr>
+    {% for l in grouped_logs %}
+        <tr>
+            <td>{{ l['ip'] }}</td>
+            <td>{{ l['start_time'] }}</td>
+            <td><a href='view_analysis?request_id={{ l['help_request_id'] }}' target="_blank">{{ l['help_request_id'] }}</a></td>
+            <td><a href="{{ url_for('view_log_set') }}?{{ l['logs_params'] }}"> View logs </a></td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>

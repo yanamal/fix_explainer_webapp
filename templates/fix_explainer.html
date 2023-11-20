@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.3/leader-line.min.js" integrity="sha512-aFBNsI3+D6ObLLtyKwdZPZzDbcCC6+Bh+2UNV8HC0R95BpcBT+dmmZ5NMpJi/Ic8uO0W7FGcg33IfuHg+7Ryew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='test_data.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='hw_data.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='logging.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='fixes.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='request_form.js') }}"></script>
 </head>
@@ -45,6 +46,8 @@
         // TODO: do this on each insert/change code
         highlight_nodes()
         apply_special_styling()
+
+
     </script>
 </body>
 </html>

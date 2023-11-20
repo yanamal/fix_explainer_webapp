@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Active problems</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='request_queue.css') }}"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+</head>
+<body>
+    <table id="problem_table">
+        <tr>
+            <th>ID</th>
+            <th>Assignment</th>
+            <th>Problem name</th>
+            <th>Solutions</th>
+            <th>Unit tests</th>
+            <th>Practice problems</th>
+        </tr>
+
+    {% for p in problems %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.homework }}</td>
+            <td><a href="{{ url_for('submit_page') }}?problem_id={{ p.id }}" target="_blank">{{ p.name }}</a></td>
+            <td>{{ p.solutions|length }}</td>
+            <td>{{ p.tests|length }}</td>
+            <td>{{ p.practice_problems|length }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>

@@ -13,62 +13,111 @@
 
 <table id='request-queue'>
     <tr>
+        <th>ID</th>
         <th>Time submitted</th>
-        <th>Student Name</th>
+        <th style='width:10em'>Student Name</th>
         <th>Student Email</th>
+        <th>Assignment</th>
         <th>Problem</th>
+        <th style="writing-mode: vertical-rl;">Conceptual?</th>
+        <th style="writing-mode: vertical-rl;">Implementation?</th>
+        <th style="writing-mode: vertical-rl;">Debugging?</th>
+
         <th>Code analysis result</th>
-        <th>Participating in study?</th>
+        <th>Participating<br/> in study?</th>
         <th>Student being helped?</th>
 
     </tr>
     {% for r in requests %}
         <tr class="{{ 'in-study' if (r.student_email in in_study) else 'not-in-study' }}">
+            <td><a href='debug_info?request_id={{ r.id }}'>{{ r.id }}</a></td>
             <td>{{ timezone('Etc/UTC').localize(r.request_time).astimezone(timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S %Z') }}</td>
             <td>{{ r.student_name }}</td>
             <td>{{ r.student_email }}</td>
+            <td>{{ r.problem.homework }}</td>
             <td>{{ r.problem.name }}</td>
+            <td>{{'Y' if r.is_conceptual}}</td>
+            <td>{{'Y' if r.is_implementing}}</td>
+            <td>{{'Y' if r.is_debugging}}</td>
             <td>{{ r.result }}
-            {% if r.result != 'No Code Submitted' %}
-                (<a href='view_analysis?request_id={{ r.id }}'>code analysis</a>)
+            {% if r.result not in ('No Code Submitted', 'Processing', 'Error analyzing') %}
+                (<a href='view_analysis?request_id={{ r.id }}' target="_blank">code analysis</a>)
             {% endif %}
             </td>
             <td>{{ 'Yes' if (r.student_email in in_study)}}</td>
             <td>
-                <form method="post">
+                <form method="post"
+                    {% if r.result not in ('No Code Submitted', 'Processing', 'Error analyzing') %}
+                        onsubmit="window.open('view_analysis?request_id={{ r.id }}', '_blank');"
+                    {% endif %}
+                     >
                     <input type="hidden" name="being_helped" value="{{ r.id }}"/>
                     <input type="submit" value="Being Helped"/>
                 </form>
             </td>
+
+            <td>
+                {% if r.result not in ('No Code Submitted', 'Syntax Error') %}
+                <!--form method="post">
+                    <input type="hidden" name="rerun" value="{{ r.id }}"/>
+                    <input type="submit" value="Rerun analysis"/>
+                </form-->
+                {% endif %}
+            </td>
+
         </tr>
     {% endfor %}
 </table>
 <hr/>
     <h1>Already Being Helped</h1>
+    <!--TODO: reuse table configuration except "being helped" button?-->
 <table id='processed-requests'>
     <tr>
+        <th>ID</th>
         <th>Time submitted</th>
-        <th>Student Name</th>
+        <th style='width:10em'>Student Name</th>
         <th>Student Email</th>
+        <th>Assignment</th>
         <th>Problem</th>
+        <th style="writing-mode: vertical-rl;">Conceptual?</th>
+        <th style="writing-mode: vertical-rl;">Implementation?</th>
+        <th style="writing-mode: vertical-rl;">Debugging?</th>
         <th>Code analysis result</th>
-        <th>Participating in study?</th>
+        <th>Participating<br/> in study?</th>
 
     </tr>
     {% for r in processed_requests %}
         <tr class="{{ 'in-study' if (r.student_email in in_study) else 'not-in-study' }}">
+            <td><a href='debug_info?request_id={{ r.id }}'>{{ r.id }}</a></td>
             <td>{{ timezone('Etc/UTC').localize(r.request_time).astimezone(timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S %Z') }}</td>
             <td>{{ r.student_name }}</td>
             <td>{{ r.student_email }}</td>
+            <td>{{ r.problem.homework }}</td>
             <td>{{ r.problem.name }}</td>
+            <td>{{'Y' if r.is_conceptual}}</td>
+            <td>{{'Y' if r.is_implementing}}</td>
+            <td>{{'Y' if r.is_debugging}}</td>
             <td>{{ r.result }}
-            {% if r.result != 'No Code Submitted' %}
-                (<a href='view_analysis?request_id={{ r.id }}'>code analysis</a>)
+            {% if r.result not in ('No Code Submitted', 'Processing', 'Error analyzing') %}
+                (<a href='view_analysis?request_id={{ r.id }}' target="_blank">code analysis</a>)
             {% endif %}
             </td>
             <td>{{ 'Yes' if (r.student_email in in_study)}}</td>
+
+            <td>
+                {% if r.result not in ('No Code Submitted', 'Syntax Error') %}
+                <form method="post">
+                    <input type="hidden" name="rerun" value="{{ r.id }}"/>
+                    <input type="submit" value="Rerun analysis"/>
+                </form>
+                {% endif %}
+            </td>
         </tr>
     {% endfor %}
 </table>
+
+        <!--form method="post" action="/rerun_all">
+            <input type="submit" value="Rerun all analysis"/>
+        </form-->
 
 </body>

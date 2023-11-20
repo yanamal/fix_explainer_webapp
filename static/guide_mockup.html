@@ -1,0 +1,88 @@
+<script>
+function toggle_checkbox_block(checkbox_id, block_id) {
+    var checkbox = document.getElementById(checkbox_id);
+    var block = document.getElementById(block_id);
+    if (checkbox.checked === true){
+        block.style.display = "block";
+    } else {
+        block.style.display = "none";
+    }
+
+}
+</script>
+
+The student may be having issues with...
+
+<div id='misconceptions' class='concept_block'>
+ <div>
+     <input type="checkbox"  autocomplete="off" id="misconceptions_check" onclick="toggle_checkbox_block('misconceptions_check', 'misconceptions_details')">
+     <label for="misconceptions_check">Understanding some underlying concept(s)</label>
+ </div>
+ <div id="misconceptions_details" style="display:none">
+    <label for="concept">Concept: </label>
+    <input id="concept" type="text">
+    <br/>
+    It may be helpful to...
+    <br/>
+    <input type="checkbox" autocomplete="off" id="analogy_check" onclick="toggle_checkbox_block('analogy_check', 'analogy_details')">
+    <label for="analogy_check">Draw an analogy to something we saw in previous classes or homeworks</label>
+    <div id="analogy_details" style="display:none">
+        <label for="analogy">Analogy: </label>
+        <input id="analogy" type="text">
+    </div>
+    <br/>
+
+    <input type="checkbox" autocomplete="off" id="metaphor_check" onclick="toggle_checkbox_block('metaphor_check', 'metaphor_details')">
+    <label for="metaphor_check">Explain the concept using a metaphor</label>
+    <div id="metaphor_details" style="display:none">
+        <label for="metaphor">Metaphor: </label>
+        <input id="metaphor" type="text">
+    </div>
+    <br/>
+
+    <input type="checkbox" autocomplete="off" id="example_check" onclick="toggle_checkbox_block('example_check', 'example_details')">
+    <label for="example_check">Talk through a concrete example of how this concept works within their code</label>
+    <div id="example_details" style="display:none">
+        <label for="example">Using the sample input from: </label>
+        <select id="example">
+            <option>unit test 1</option>
+            <option>unit test 2</option>
+            <option>unit test 3</option>
+            <option>my own input...</option>
+        </select>
+    </div>
+    <br/>
+
+ </div>
+</div>
+
+<div id='logic' class='concept_block'>
+ <div>
+     <input type="checkbox"  autocomplete="off" id="logic_check" onclick="toggle_checkbox_block('logic_check', 'logic_details')">
+     <label for="logic_check">Figuring out the correct logic or algorithm for the problem</label>
+ </div>
+ <div id="logic_details" style="display:none">
+         <br/>
+    It may be helpful to...
+    <br/>
+    <input type="checkbox" autocomplete="off" id="sample_logic">
+    <label for="sample_logic">Step through what the code is currently doing using a sample input</label>
+
+ </div>
+</div>
+
+<div id='bugs' class='concept_block'>
+ <div>
+     <input type="checkbox"  autocomplete="off" id="bug_check" onclick="toggle_checkbox_block('bug_check', 'bug_details')">
+     <label for="bug_check">Locating and diagnosing some bug(s)</label>
+ </div>
+ <div id="bug_details" style="display:none">
+     <br/>
+    It may be helpful to...
+    <br/>
+
+    <input type="checkbox" autocomplete="off" id="symptoms">
+    <label for="symptoms">Talk through the symptoms and how they point to the bug</label>
+
+ </div>
+</div>
